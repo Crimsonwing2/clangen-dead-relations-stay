@@ -439,18 +439,10 @@ class RelationshipScreen(Screens):
                                                                               object_id="#text_box_22_horizleft_spacing_95",
                                                                               manager=MANAGER)
 
-            if self.inspect_cat.dead:
-                self.view_profile_button.enable()
-                self.switch_focus_button.disable()
-                self.log_icon.disable()
-            else:
-                self.view_profile_button.enable()
-                self.switch_focus_button.enable()
-                self.log_icon.enable()
-        else:
-            self.view_profile_button.disable()
-            self.switch_focus_button.disable()
-            self.log_icon.disable()
+        
+        self.view_profile_button.enable()
+        self.switch_focus_button.enable()
+        self.log_icon.enable()
 
     def apply_cat_filter(self, search_text=""):
         # Filter for dead or empty cats

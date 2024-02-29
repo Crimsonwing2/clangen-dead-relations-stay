@@ -206,12 +206,9 @@ def json_load():
 
         # load the relationships
         try:
-            if not cat.dead:
-                cat.load_relationship_of_cat()
-                if cat.relationships is not None and len(cat.relationships) < 1:
-                    cat.init_all_relationships()
-            else:
-                cat.relationships = {}
+            cat.load_relationship_of_cat()
+            if cat.relationships is not None and len(cat.relationships) < 1:
+                cat.init_all_relationships()
         except Exception as e:
             logger.exception(f'There was an error loading relationships for cat #{cat}.')
             game.switches['error_message'] = f'There was an error loading relationships for cat #{cat}.'
@@ -408,20 +405,18 @@ def csv_load(all_cats):
                 former_apps.append(f_app)
             inter_cat.apprentice = [a.ID for a in apps]  # Switch back to IDs. I don't want to risk breaking everything.
             inter_cat.former_apprentices = [a.ID for a in former_apps]
-            if not inter_cat.dead:
-                game.switches[
+            game.switches[
                     'error_message'] = 'There was an error loading this clan\'s relationships. Last cat read was ' + str(
                     inter_cat)
-                inter_cat.load_relationship_of_cat()
+            inter_cat.load_relationship_of_cat()
             game.switches[
                 'error_message'] = 'There was an error loading a cat\'s sprite info. Last cat read was ' + str(
                 inter_cat)
             # update_sprite(inter_cat)
         # generate the relationship if some is missing
-        if not the_cat.dead:
-            game.switches[
+        game.switches[
                 'error_message'] = 'There was an error when relationships where created.'
-            for id in all_cats.keys():
+        for id in all_cats.keys():
                 the_cat = all_cats.get(id)
                 game.switches[
                     'error_message'] = f'There was an error when relationships for cat #{the_cat} are created.'

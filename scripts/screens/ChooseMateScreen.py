@@ -853,8 +853,6 @@ class ChooseMateScreen(Screens):
                     (400, 156)))
 
         # Set romantic hearts of current cat towards mate or selected cat.
-        if self.the_cat.dead:
-            romantic_love = 0
         else:
             if self.selected_cat.ID in self.the_cat.relationships:
                 relation = self.the_cat.relationships[self.selected_cat.ID]
@@ -882,9 +880,6 @@ class ChooseMateScreen(Screens):
             x_pos += 54
 
         # Set romantic hearts of mate/selected cat towards current_cat.
-        if self.selected_cat.dead:
-            romantic_love = 0
-        else:
             if self.the_cat.ID in self.selected_cat.relationships:
                 relation = self.selected_cat.relationships[self.the_cat.ID]
             else:

@@ -442,9 +442,6 @@ class Cat():
             game.just_died.append(self.ID)
             self.thought = 'Is surprised to find themself walking the stars of Silverpelt'
 
-        # Clear Relationships. 
-        self.relationships = {}
-
         for app in self.apprentice.copy():
             fetched_cat = Cat.fetch_cat(app)
             if fetched_cat:
@@ -2235,9 +2232,6 @@ class Cat():
                 continue
             # if the cat already has (somehow) a relationship with the inter cat
             if inter_cat.ID in self.relationships:
-                continue
-            # if they dead (dead cats have no relationships)
-            if self.dead or inter_cat.dead:
                 continue
             # if they are not outside of the Clan at the same time
             if self.outside and not inter_cat.outside or not self.outside and inter_cat.outside:
