@@ -567,9 +567,32 @@ class EventsScreen(Screens):
                 "season": i18n.t(game.clan.current_season.lower()).capitalize()
             },
         )
-        self.clan_info["age"].set_text(
-            "screens.events.age", text_kwargs={"count": game.clan.age}
-        )
+        clanyears = str(game.clan.age / 12)
+        clanyears = clanyears[:4]
+        if clanyears[-1] == '0':
+            clanyears = clanyears[:-1]
+        if clanyears[-1] == '.':
+            clanyears = clanyears[:-1]
+        if clanyears == 1:
+            years = f"{clanyears} year"
+        else:
+            years = f"{clanyears} years"
+
+        if game.clan.clan_settings['showyears']:
+            if game.clan.age == 1:
+                self.clan_info["age"].set_text(f'Clan age: {game.clan.age} moon | {years}')
+            if game.clan.age != 1:
+                self.clan_info["age"].set_text(f'Clan age: {game.clan.age} moons | {years}')
+        elif game.clan.clan_settings['onlyyears']:
+            if game.clan.age == 1:
+                self.clan_info["age"].set_text(f'Clan age: {years}')
+            if game.clan.age != 1:
+                self.clan_info["age"].set_text(f'Clan age: {years}')
+        else:
+            if game.clan.age == 1:
+                self.clan_info["age"].set_text(f'Clan age: {game.clan.age} moon')
+            if game.clan.age != 1:
+                self.clan_info["age"].set_text(f'Clan age: {game.clan.age} moons')
 
         self.make_event_scrolling_container()
 

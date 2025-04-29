@@ -99,6 +99,60 @@ class SkillPath(Enum):
         "prophet",
     )
     GHOST = ("morbid curiosity", "ghost sense", "ghost sight", "ghost speaker")
+    TRACKER = (
+        "tracking instincts",
+        "decent tracker",
+        "good tracker",
+        "master tracker"
+    )
+    LEADER = (
+        "likes giving orders",
+        "leadership skills",
+        "good patrol leader",
+        "natural leader"
+    )
+    MEMORY = (
+        "plays memory games",
+        "good memory",
+        "great memory",
+        "amazing memory"
+    )
+    TUNNELER = (
+        "dirty paws",
+        "interested in tunneling",
+        "good tunneler",
+        "master tunneler"
+    )
+    AGILE = (
+        "light paws",
+        "quick on their feet",
+        "good at swerving",
+        "very agile"
+    )
+    ALERT = (
+        "light sleeper",
+        "alert",
+        "vigilant",
+        "sleeps with one eye open"
+    )
+    STEALTH = (
+        "likes hide-and-seek",
+        "good at hiding",
+        "great at stalking",
+        "blends into shadows"
+    )
+    EMPATHY = (
+        "good at comforting",
+        "can sense emotions",
+        "calming presence",
+        "reader of emotions"
+    )
+    FORAGING = (
+        "likes plants",
+        "flower picker",
+        "frequent forager",
+        "master of plants"
+    )
 
     @staticmethod
     def get_random(exclude: list = ()):
@@ -115,6 +169,7 @@ class SkillPath(Enum):
                 SkillPath.STAR,
                 SkillPath.HEALER,
                 SkillPath.DARK,
+                SkillPath.EMPATHY,
             ]
             if i not in exclude
         ]
@@ -160,7 +215,7 @@ class Skill:
         SkillPath.SWIMMER: "swimming",
         SkillPath.SPEAKER: "speaking",
         SkillPath.MEDIATOR: "mediating",
-        SkillPath.CLEVER: "clever",
+        SkillPath.CLEVER: "cleverness",
         SkillPath.INSIGHTFUL: "advising",
         SkillPath.SENSE: "observing",
         SkillPath.KIT: "caretaking",
@@ -168,13 +223,22 @@ class Skill:
         SkillPath.LORE: "lorekeeping",
         SkillPath.CAMP: "campkeeping",
         SkillPath.HEALER: "healing",
-        SkillPath.STAR: "StarClan",
-        SkillPath.OMEN: "omen",
+        SkillPath.STAR: "starclan",
+        SkillPath.OMEN: "omen-reading",
         SkillPath.DREAM: "dreaming",
         SkillPath.CLAIRVOYANT: "predicting",
-        SkillPath.PROPHET: "prophesying",
-        SkillPath.GHOST: "ghosts",
+        SkillPath.PROPHET: "prophecy-telling",
+        SkillPath.GHOST: "ghost-seeing",
         SkillPath.DARK: "dark forest",
+        SkillPath.TRACKER: "tracking",
+        SkillPath.LEADER: "leading",
+        SkillPath.MEMORY: "memorizing",
+        SkillPath.TUNNELER: "tunneling",
+        SkillPath.AGILE: "agility",
+        SkillPath.ALERT: "alertness",
+        SkillPath.STEALTH: "sneaking",
+        SkillPath.EMPATHY: "empathizing",
+        SkillPath.FORAGING: "foraging",
     }
 
     def __init__(self, path: SkillPath, points: int = 0, interest_only: bool = False):
@@ -323,6 +387,15 @@ class CatSkills:
         SkillPath.PROPHET: SkillTypeFlag.SUPERNATURAL,
         SkillPath.GHOST: SkillTypeFlag.SUPERNATURAL,
         SkillPath.DARK: SkillTypeFlag.SUPERNATURAL,
+        SkillPath.TRACKER: SkillTypeFlag.AGILE | SkillTypeFlag.OBSERVANT,
+        SkillPath.LEADER: SkillTypeFlag.SOCIAL | SkillTypeFlag.SMART,
+        SkillPath.MEMORY: SkillTypeFlag.SMART,
+        SkillPath.TUNNELER: SkillTypeFlag.STRONG | SkillTypeFlag.AGILE,
+        SkillPath.AGILE: SkillTypeFlag.AGILE,
+        SkillPath.ALERT: SkillTypeFlag.OBSERVANT | SkillTypeFlag.SMART,
+        SkillPath.STEALTH: SkillTypeFlag.AGILE | SkillTypeFlag.OBSERVANT,
+        SkillPath.EMPATHY: SkillTypeFlag.OBSERVANT | SkillTypeFlag.SOCIAL,
+        SkillPath.FORAGING: SkillTypeFlag.OBSERVANT,
     }
 
     # pylint: enable=unsupported-binary-operation

@@ -1025,7 +1025,7 @@ def check_relationship_value(cat_from, cat_to, rel_value=None):
     if cat_to.ID in cat_from.relationships:
         relationship = cat_from.relationships[cat_to.ID]
     else:
-        relationship = cat_from.create_one_relationship(cat_to)
+        return 0
 
     if rel_value == "romantic":
         return relationship.romantic_love
@@ -2811,6 +2811,17 @@ def generate_sprite(
                 sprites.sprites["eyes2" + cat.pelt.eye_colour2 + cat_sprite], (0, 0)
             )
         new_sprite.blit(eyes, (0, 0))
+
+        # albinism/melanism, layers over the pelt and eyes but does not erase.
+        if cat.albinistic:
+            new_sprite.blit(sprites.sprites['albinistic' + cat_sprite], (0, 0))
+            eyes = sprites.sprites['eyes' + 'CYAN' + cat_sprite].copy()
+            new_sprite.blit(eyes, (0, 0))
+        if cat.melanistic:
+            new_sprite.blit(sprites.sprites['melanistic' + cat_sprite], (0, 0))
+            eyes = sprites.sprites['eyes' + 'BRONZE' + cat_sprite].copy() 
+            new_sprite.blit(eyes, (0, 0))
+
 
         if not scars_hidden:
             for scar in cat.pelt.scars:

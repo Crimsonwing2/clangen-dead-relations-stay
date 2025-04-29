@@ -749,13 +749,86 @@ class ProfileScreen(Screens):
             )
 
         # MOONS
+        # getting the years, and a bunch of other stuff added to the years str so it can be removed easily
         output += "\n"
-        if the_cat.dead:
-            output += i18n.t("general.moons_age_in_life", count=the_cat.moons)
-            output += "\n"
-            output += i18n.t("general.moons_age_in_death", count=the_cat.dead_for)
+
+        years = str(the_cat.moons / 12)
+        dead_years = str(the_cat.dead_for / 12)
+        years = years[:4]
+        if years[-1] == '0':
+            years = years[:-1]
+        dead_years = dead_years[:4]
+        if dead_years[-1] == '0':
+            dead_years = dead_years[:-1]
+        if years[-1] == '.':
+            years = years[:-1]
+        dead_years = dead_years[:4]
+        if dead_years[-1] == '.':
+            dead_years = dead_years[:-1]
+        if years == 1:
+            years = f'{years} year'
         else:
-            output += i18n.t("general.moons_age", count=the_cat.moons)
+            years = f'{years} years'
+        if dead_years == 1:
+            dead_years = f'{dead_years} year'
+        else:
+            dead_years = f'{dead_years} years'
+        
+        if game.clan.clan_settings['showyears']:
+            if the_cat.dead:
+                output += str(the_cat.moons)
+                if the_cat.moons == 1:
+                    output += f' moon  |  {years} (in life)\n'
+                elif the_cat.moons != 1:
+                    output += f' moons  |  {years} (in life)\n'
+
+                output += str(the_cat.dead_for)
+                if the_cat.dead_for == 1:
+                    output += f' moon  |  {dead_years} (in death)'
+                elif the_cat.dead_for != 1:
+                    output += f' moons  | {dead_years} (in death)'
+            else:
+                output += str(the_cat.moons)
+                if the_cat.moons == 1:
+                    output += f' moon  |  {years}'
+                elif the_cat.moons != 1:
+                    output += f' moons  |  {years}'
+        elif game.clan.clan_settings['onlyyears']:
+            if the_cat.dead:
+                if the_cat.moons == 1:
+                    output += f'{years} in life\n'
+                elif the_cat.moons != 1:
+                    output += f'{years} in life\n'
+
+                if the_cat.dead_for == 1:
+                    output += f'{dead_years} in death'
+                elif the_cat.dead_for != 1:
+                    output += f'{dead_years} in death'
+            else:
+                if the_cat.moons == 1:
+                    output += f'{years}' 
+                elif the_cat.moons != 1:
+                    output += f'{years}'
+        else:
+            if the_cat.dead:
+                output += str(the_cat.moons)
+                if the_cat.moons == 1:
+                    output += f' moon (in life)\n'
+                elif the_cat.moons != 1:
+                    output += f' moons (in life)\n'
+
+                output += str(the_cat.dead_for)
+                if the_cat.dead_for == 1:
+                    output += f' moon (in death)'
+                elif the_cat.dead_for != 1:
+                    output += f' moons (in death)'
+            else:
+                output += str(the_cat.moons)
+                if the_cat.moons == 1:
+                    output += ' moon'
+                elif the_cat.moons != 1:
+                    output += f' moons'
+
         # MATE
         if len(the_cat.mate) > 0:
             output += "\n"

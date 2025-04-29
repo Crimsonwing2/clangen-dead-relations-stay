@@ -658,6 +658,8 @@ class Pelt:
         scars: list = None,
         tint: str = "none",
         skin: str = "BLACK",
+        albinistic=False,
+        melanistic=False,
         white_patches_tint: str = "none",
         kitten_sprite: int = None,
         adol_sprite: int = None,
@@ -713,9 +715,33 @@ class Pelt:
         new_pelt.init_eyes(parents)
         new_pelt.init_pattern()
         new_pelt.init_tint()
+        new_pelt.generate_albinism(parents)
+        new_pelt.generate_melanism(parents)
 
         return new_pelt
 
+    def generate_albinism(self, parents):
+        parentchoice = random.choice([i.pelt.albinistic for i in parents])
+        if parentchoice:
+            chance = random.randint(1,10)
+        else:
+            chance = random.randint(1,100)
+        if chance == 1:
+            return True
+        else:
+            return False
+
+    def generate_melanism(self, parents):
+        parentchoice = random.choice([i.pelt.melanistic for i in parents])
+        if parentchoice:
+            chance = random.randint(1,10)
+        else:
+            chance = random.randint(1,100)
+        if chance == 1:
+            return True
+        else:
+            return False
+        
     def check_and_convert(self, convert_dict):
         """Checks for old-type properties for the appearance-related properties
         that are stored in Pelt, and converts them. To be run when loading a cat in."""
@@ -1584,6 +1610,13 @@ def _describe_pattern(cat, short=False):
         if "ginger point" in color_name:
             color_name.replace("ginger point", "flame point")
             # look, I'm leaving this as a quirk of the english language, if it's a problem elsewhere lmk
+
+    if cat.albinistic:
+        color_name = "unusually pale"
+        pelt_name = ""
+    elif cat.melanistic:
+        color_name = "unusually dark"
+        pelt_name = ""
 
     return pelt_name, color_name
 

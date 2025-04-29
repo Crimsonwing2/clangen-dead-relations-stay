@@ -168,10 +168,13 @@ class Cat:
         self.personality = Personality(
             trait="troublesome", lawful=0, aggress=0, stable=0, social=0
         )
+        self.secondarypersonality = self.secondarypersonality if self.secondarypersonality else SecondaryPersonality(lawful=self.personality.lawfulness,stable=self.personality.stability,aggress=self.personality.aggression,social=self.personality.sociability) # Hidden trait that mainly deals with morals. Must be here so personality facets can be called on
         self.parent1 = parent1
         self.parent2 = parent2
         self.adoptive_parents = adoptive_parents if adoptive_parents else []
         self.pelt = pelt if pelt else Pelt()
+        self.albinistic = False
+        self.melanistic = False
         self.former_mentor = []
         self.patrol_with_mentor = 0
         self.apprentice = []
@@ -421,6 +424,13 @@ class Cat:
             [Cat.fetch_cat(i) for i in (self.parent1, self.parent2) if i],
             self.age,
         )
+
+        if self.melanistic is True and self.albinistic is True:
+            coinflip = randint(1, 2)
+            if coinflip == 1:
+                self.melanistic = False
+            else:
+                self.albinistic = False
 
         # Personality
         self.personality = Personality(kit_trait=self.age.is_baby())
@@ -3404,6 +3414,7 @@ class Cat:
                 "moons": self.moons,
                 "trait": self.personality.trait,
                 "facets": self.personality.get_facet_string(),
+                "secondarytrait": self.secondarypersonality.secondary,
                 "parent1": self.parent1,
                 "parent2": self.parent2,
                 "adoptive_parents": self.adoptive_parents,
@@ -3424,6 +3435,8 @@ class Cat:
                 "pelt_name": self.pelt.name,
                 "pelt_color": self.pelt.colour,
                 "pelt_length": self.pelt.length,
+                "albinistic": self.albinistic,
+                "melanistic": self.melanistic,
                 "sprite_kitten": self.pelt.cat_sprites["kitten"],
                 "sprite_adolescent": self.pelt.cat_sprites["adolescent"],
                 "sprite_adult": self.pelt.cat_sprites["adult"],
@@ -3531,6 +3544,40 @@ def create_cat(status, moons=None, biome=None):
 
     return new_cat
 
+class SecondaryPersonality():
+    """a"""
+
+    def __init__(self, lawful:int=None, stable:int=None, aggress:int=None, 
+                 social:int=None) -> SecondaryPersonality:
+        lawful = (lawful - 7) * 2 # if below average, will turn negative. then *'d by 2 to increase effect, and get rid of .5s
+        stable = (stable - 7) * 2
+        aggress = (aggress - 7) * 2
+        social = (social - 7) * 2
+
+        cruel_chance = int(game.config["personality"]["cruel_chance"]) - (lawful*2) - (stable*2) + (aggress*2) - (social*2)
+        mean_chance = int(game.config["personality"]["mean_chance"]) - lawful - stable + aggress - social + cruel_chance
+        neutral_chance = int(game.config["personality"]["neutral_chance"]) + mean_chance
+        kind_chance = int(game.config["personality"]["kind_chance"]) + lawful + stable - aggress + social + neutral_chance
+        gracious_chance = int(game.config["personality"]["gracious_chance"]) + (lawful*2) + (stable*2) - (aggress*2) + (social*2) + kind_chance
+
+        maxchance = cruel_chance + mean_chance + neutral_chance + kind_chance + gracious_chance
+        mean_chance += cruel_chance
+        neutral_chance += mean_chance
+        kind_chance += neutral_chance
+        gracious_chance += kind_chance
+
+
+        chance = randint(0, maxchance)
+        if chance <= cruel_chance:
+            self.secondary = "cruel"
+        elif chance <= mean_chance:
+            self.secondary = "mean"
+        elif chance <= neutral_chance:
+            self.secondary = "neutral"
+        elif chance <= kind_chance:
+            self.secondary = "kind"
+        else:
+            self.secondary = "gracious"
 
 # Twelve example cats
 def create_example_cats():

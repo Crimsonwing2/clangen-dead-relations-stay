@@ -863,7 +863,33 @@ class ChooseMateScreen(Screens):
             object_id="#text_box_34_horizcenter",
         )
 
-        info = self.the_cat.get_info_block()
+        # cat's age in years
+        years = str(self.the_cat.moons / 12)
+        years = years[:4]
+        if years[-1] == '0':
+            years = years[:-1]
+        if years[-1] == '.':
+            years = years[:-1]
+
+        if game.clan.clan_settings['showyears']:
+            if years == 1:
+                info = str(self.the_cat.moons) + " moons\n  |  " + f"{years} year" + "\n" + \
+                   self.the_cat.status + "\n" + self.the_cat.genderalign + "\n" + \
+                   self.the_cat.personality.trait
+            else:
+                info = str(self.the_cat.moons) + " moons\n  |  " + f"{years} years" + "\n" + \
+                   self.the_cat.status + "\n" + self.the_cat.genderalign + "\n" + \
+                   self.the_cat.personality.trait
+        elif game.clan.clan_settings['onlyyears']:
+            if years == 1:
+                info = str(years) + " year\n" + self.the_cat.status + "\n" + \
+                    self.the_cat.genderalign + "\n" + self.the_cat.personality.trait
+            else:
+                info = str(years) + " years\n" + self.the_cat.status + "\n" + \
+                    self.the_cat.genderalign + "\n" + self.the_cat.personality.trait
+        else:
+            info = str(self.the_cat.moons) + " moons\n"  + self.the_cat.status + "\n" + \
+                    self.the_cat.genderalign + "\n" + self.the_cat.personality.trait
         if self.the_cat.mate:
             info += f"\n{len(self.the_cat.mate)} " + i18n.t(
                 "general.mate", count=len(self.the_cat.mate)
@@ -1017,7 +1043,33 @@ class ChooseMateScreen(Screens):
             object_id="#text_box_34_horizcenter",
         )
 
-        info = self.selected_cat.get_info_block()
+        # cat's age in years
+        years = str(self.selected_cat.moons / 12)
+        years = years[:4]
+        if years[-1] == '0':
+            years = years[:-1]
+        if years[-1] == '.':
+            years = years[:-1]
+
+        if game.clan.clan_settings['showyears']:
+            if years == 1:
+                info = str(self.selected_cat.moons) + " moons\n  |  " + f"{years} year" + "\n" + \
+                   self.selected_cat.status + "\n" + self.selected_cat.genderalign + "\n" + \
+                   self.selected_cat.personality.trait
+            else:
+                info = str(self.selected_cat.moons) + " moons\n  |  " + f"{years} years" + "\n" + \
+                   self.selected_cat.status + "\n" + self.selected_cat.genderalign + "\n" + \
+                   self.selected_cat.personality.trait
+        elif game.clan.clan_settings['onlyyears']:
+            if years == 1:
+                info = str(years) + " year\n" + self.selected_cat.status + "\n" + \
+                    self.selected_cat.genderalign + "\n" + self.selected_cat.personality.trait
+            else:
+                info = str(years) + " years\n" + self.selected_cat.status + "\n" + \
+                    self.selected_cat.genderalign + "\n" + self.selected_cat.personality.trait
+        else:
+            info = str(self.selected_cat.moons) + " moons\n"  + self.selected_cat.status + "\n" + \
+                    self.selected_cat.genderalign + "\n" + self.selected_cat.personality.trait
         if self.selected_cat.mate:
             info += f"\n{len(self.selected_cat.mate)} " + i18n.t(
                 "general.mate", count=len(self.selected_cat.mate)

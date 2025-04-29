@@ -35,6 +35,20 @@
             "Will turn 'experience: proficient' into 'experience: proficient (151)'; and 'nutrition: full' into 'nutrition: full (70)'.",
             false
         ],
+        "showyears": [
+            "Show age in years as well as moons",
+            "Will turn '12 moons' into '12 moons (1 year)'",
+            true
+        ],
+        "onlyyears": [
+            "Show age in years instead of moons",
+            "Will turn '12 moons' into '1 year'",
+            false,
+            [
+                "showyears",
+                false
+            ]
+        ],
         "random med cat": [
             "Allow medicine cats to be randomly selected on patrol",
             "Medicine cats can be selected with the patrol buttons +1, +3,+6.",
@@ -81,6 +95,11 @@
             "Allow warriors and elders to choose to become mediators",
             "Warriors and elders will have a chance to become mediators upon timeskip.",
             false
+        ],
+        "apprentice_age": [
+            "Allow the leader to choose apprenticeship age",
+            "Allow the leader to choose when kittens become apprentices. Based on personality.",
+            true
         ]
     },
     "relation": {

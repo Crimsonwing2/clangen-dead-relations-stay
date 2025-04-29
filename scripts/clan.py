@@ -268,6 +268,7 @@ class Clan:
         self.save_clan()
         game.save_clanlist(self.name)
         game.switches["clan_list"] = game.read_clans()
+        self.save_app_age(game.clan)
         # if map_available:
         #    save_map(game.map_info, game.clan.name)
 
@@ -481,6 +482,7 @@ class Clan:
             "mediated": game.mediated,
             "starting_season": self.starting_season,
             "temperament": self.temperament,
+            "app_age": game.app_age,
             "version_name": SAVE_VERSION_NUMBER,
             "version_commit": get_version_info().version_number,
             "source_build": get_version_info().is_source_build,
@@ -528,6 +530,7 @@ class Clan:
         self.save_herb_supply(game.clan)
         self.save_disaster(game.clan)
         self.save_pregnancy(game.clan)
+        self.save_app_age(game.clan)
 
         self.save_clan_settings()
         if game.clan.game_mode in ["expanded", "cruel season"]:
@@ -539,6 +542,22 @@ class Clan:
             self.name != "current"
         ):
             os.remove(get_save_dir() + f"/{self.name}clan.txt")
+
+    def save_app_age(self, clan):
+        if not game.clan.name:
+            return
+        saved_app_age = game.app_age
+        game.safe_save(get_save_dir() + f"/{str(game.clan.name)}/app_age.json", saved_app_age)
+
+    def load_app_age(self, clan):
+        file_path = get_save_dir() + f"/{game.clan.name}/app_age.json"
+        if os.path.exists(file_path):
+            with open(file_path, 'r', encoding='utf-8') as read_file:
+                read_app_age = ujson.loads(read_file.read())
+                if read_app_age:
+                    game.app_age = read_app_age
+                else:
+                    print("No app age found - may be due to a 0 moons old clan")
 
     def switch_setting(self, setting_name):
         """Call this function to change a setting given in the parameter by one to the right on it's list"""
@@ -913,6 +932,7 @@ class Clan:
         self.load_pregnancy(game.clan)
         self.load_herb_supply(game.clan)
         self.load_disaster(game.clan)
+        self.load_app_age(game.clan)
         if game.clan.game_mode != "classic":
             self.load_freshkill_pile(game.clan)
         game.switches["error_message"] = ""

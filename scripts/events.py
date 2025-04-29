@@ -13,10 +13,12 @@ import traceback
 
 import i18n
 
+from random import randint, choice
 from scripts.cat.cats import Cat, cat_class, BACKSTORIES
 from scripts.cat.enums import CatAgeEnum
 from scripts.cat.history import History
 from scripts.cat.names import Name
+from scripts.cat.skills import SkillPath
 from scripts.clan_resources.freshkill import FRESHKILL_EVENT_ACTIVE
 from scripts.conditions import (
     medical_cats_condition_fulfilled,
@@ -46,6 +48,7 @@ from scripts.utility import (
     get_other_clan,
     history_text_adjust,
     unpack_rel_block,
+    check_relationship_value,
 )
 from scripts.game_structure.localization import load_lang_resource
 
@@ -106,6 +109,9 @@ class Events:
         get_current_season()
         Pregnancy_Events.handle_pregnancy_age(game.clan)
         self.check_war()
+
+        if game.clan.leader is not None:
+            self.set_app_age(new_leader=False)
 
         if (
             game.clan.game_mode in ["expanded", "cruel season"]
@@ -297,6 +303,82 @@ class Events:
                 string = i18n.t("defaults.warn_no_medcats")
                 game.cur_events_list.insert(0, Single_Event(string, "health"))
 
+        # I can't add this event into events as far as I'm aware, so it's here. Cats stolen from another clan have a chance to run away every moonskip. Chance varies depending on role.
+
+        runaway_thought = [
+            f"Is relieved to finally be away from {game.clan.name}Clan", "Wonders if running away was really the right choice" 
+            ]
+        for cat in Cat.all_cats.values():
+            if cat.backstory == 'otherclan_stolen' and not cat.dead and not cat.outside and not cat.exiled and not cat.driven_out:
+
+                # base chances: normal warrior: 0.5%, app: 0.7%, elder: 0.125%, leader: 0.2%, med/dep: 0.266%, medi: 0.363%, med/medi app: 0.6%
+
+                # in order of least chance to highest chance, so if two things apply to one cat, lower chances overrite higher ones
+                
+                if cat.status == 'elder':
+                    runaway_chances = int(125)
+                elif cat.status == 'leader':
+                    runaway_chances = int(200)
+                elif cat.status in ('medicine cat', 'deputy'):
+                    runaway_chances = int(266)
+                elif cat.status == 'mediator':
+                    runaway_chances = int(363)
+                elif cat.status == 'warrior':
+                    runaway_chances = int(500)
+                elif cat.status in ('medicine cat apprentice', 'mediator apprentice'):
+                    runaway_chances = int(600)
+                elif cat.status == 'apprentice':
+                    runaway_chances = int(700)
+                elif cat.status in ('kitten', 'newborn'):
+                    runaway_chances = int(0)
+                else:
+                    # error message in case of bug or if i did things wrong. this is why the last runaway chance is needed
+                    print(f"Error: No clan role found for {cat.name}, despite being alive and not outside (Cat ID: {cat.ID})")
+
+                # now we add personality
+                    
+                  # increases chance by 0.07%
+                if cat.personality.trait in ('lonesome', 'cold', 'sneaky', 'vengeful', 'adventurous', 'rebellious', 'ambitious'):
+                    runaway_chances += 70
+
+                  # increases chance by 0.05%
+                if cat.personality.trait in ('troublesome', 'bloodthirsty', 'daring', 'bold', 'arrogant', 'grumpy', 'confident'):
+                    runaway_chances += 50
+
+                  # decreases chance by 0.07%
+                if cat.personality.trait in ('loyal', 'faithful', 'nervous', 'careful', 'responsible', 'righteous'):
+                    runaway_chances -= 70
+
+                  # decreases chance by 0.05%
+                if cat.personality.trait in ('loving', 'compassionate', 'thoughtful', 'oblivious', 'sincere', 'calm', 'strict'):
+                    runaway_chances -= 50
+
+                # age! the younger the more likely to run
+                
+                runaway_chances -= int(cat.moons - 80)
+                                
+                runaway_chance = randint(1,100000) # 1 to 100,000 to simulate 000.001 to 100.000
+
+                # min chance is 0.1%
+                if runaway_chances <= 0:
+                    runaway_chances = int(100)
+                # max chance is 1.2%
+                if runaway_chances > 1200:
+                    runaway_chances = int(1200)
+                # kittens dont run
+                if cat.status in ("kitten", "newborn"):
+                    runaway_chances = int(0)
+                print(f"{cat.name}'s runaway chance: {runaway_chances * .001}%")
+
+                if runaway_chance <= runaway_chances:
+                    print(f"Runaway {cat.name}!")
+                    runaway_event = f"{cat.name} has been growing more and more unhappy in the Clan that stole them from their original home, and ran away during the night."
+                    cat.outside = True
+                    cat.thought = random.choice(runaway_thought)
+                    cat.gone()
+                    game.cur_events_list.append(
+                    Single_Event(runaway_event, ["birth_death"], cats_involved=cat.ID))
+
         # Clear the list of cats that died this moon.
         game.just_died.clear()
 
@@ -320,6 +402,38 @@ class Events:
                 game.save_events()
             except:
                 SaveError(traceback.format_exc())
+
+    def set_app_age(self, new_leader:bool):
+        """ TODO: actually add the choosing based on stuff other than complete randomness """
+        
+        if game.clan.clan_settings["apprentice_age"]:
+            app_age_event = str("This is a bug!")
+
+            if randint(1,25) == 25 or game.app_age > 9 or game.app_age < 3 or (new_leader is True and randint(1,4) == 4): # 1/25, or 1/4 if new leader
+                new_app_age = randint(5,7)
+                while new_app_age == game.app_age:
+                    new_app_age = randint(5,7)
+
+                
+                game.app_age = new_app_age
+                if game.app_age == 6:
+                    app_age_event = str(f"{game.clan.leader.name} steps in front of the clan, declaring the apprenticeship age to be {game.app_age} moons old - the way it should be, according to the Warrior Code.")
+                elif game.app_age < 5: # 3 or 4
+                    app_age_event = str(f"{game.clan.leader.name} steps in front of the clan, declaring the apprenticeship age to be {game.app_age} moons old. The clan is silent, shocked at the at the young age that was spoken.")
+                elif game.app_age > 7: # 8 or 9
+                    app_age_event = str(f"{game.clan.leader.name} steps in front of the clan, declaring the apprenticeship age to be {game.app_age} moons old. Some cat asks how they'll get apprentices quicky enough, but is dismissed swiftly.")
+                else: # 5 or 7
+                    app_age_event = str(f"{game.clan.leader.name} steps in front of the clan, declaring the apprenticeship age to be {game.app_age} moons old.")
+                    
+                print(f"{game.clan.leader.name} says app_age is {game.app_age} now")
+
+                game.cur_events_list.insert(0,
+                Single_Event(app_age_event, ["ceremony"]))
+        else:
+            game.app_age = int(6)
+
+        game.min_grad_age = game.app_age + 4
+        game.max_grad_age = game.app_age + 19
 
     def handle_lead_den_event(self):
         """
@@ -1222,6 +1336,7 @@ class Events:
                 )
                 self.ceremony_accessory = True
                 self.gain_accessories(cat)
+                self.set_app_age(new_leader=True)
                 game.clan.deputy = None
 
         # OTHER CEREMONIES ---------------------------------------
@@ -1309,20 +1424,39 @@ class Events:
                         chance = int(chance * 2.22)
 
                     if cat.personality.trait in [
-                        "careful",
-                        "compassionate",
-                        "loving",
-                        "wise",
-                        "faithful",
+                        'loving', 'compassionate', 'strange', 'wise', 'faithful', 'sincere', 'altruistic', 'empathetic'
+                    ]:
+                        chance = int(chance / 1.5)
+                    if cat.personality.trait in [
+                        'bloodthirsty', 'fierce', 'vengeful', 'arrogant', 'troublesome', 'ambitious'
+                    ]:
+                        chance = int(chance * 1.5)
+                    if cat.skills.primary.path in [
+                        SkillPath.HEALER, SkillPath.STAR, SkillPath.DREAM, SkillPath.GHOST, SkillPath.PROPHET, SkillPath.OMEN, SkillPath.FORAGING
+                    ]:
+                        chance = int(chance / 1.5)
+                    if cat.skills.secondary.path in [
+                        SkillPath.HEALER, SkillPath.STAR, SkillPath.DREAM, SkillPath.GHOST, SkillPath.PROPHET, SkillPath.OMEN, SkillPath.FORAGING
+                    ]:
+                        chance = int(chance / 1.5)
+                    if cat.skills.primary.path in [
+                        SkillPath.FIGHTER, SkillPath.DARK, SkillPath.HUNTER
+                    ]:
+                        chance = int(chance * 1.5)
+                    if cat.skills.secondary.path in [
+                        SkillPath.FIGHTER, SkillPath.DARK, SkillPath.HUNTER                    
                     ]:
                         chance = int(chance / 1.3)
                     if cat.is_disabled():
                         chance = int(chance / 2)
 
+                    if has_med_app:
+                        chance * 3
+
                     if chance == 0:
                         chance = 1
 
-                    if not has_med_app and not int(random.random() * chance):
+                    if not int(random.random() * chance):
                         self.ceremony(cat, "medicine cat apprentice")
                         self.ceremony_accessory = True
                         self.gain_accessories(cat)
@@ -1346,25 +1480,39 @@ class Events:
 
                         chance = game.config["roles"]["mediator_app_chance"]
                         if cat.personality.trait in [
-                            "charismatic",
-                            "loving",
-                            "responsible",
-                            "wise",
-                            "thoughtful",
+                            'charismatic', 'cunning', 'wise', 'thoughtful', 'optimistic', 'empathetic'
                         ]:
                             chance = int(chance / 1.5)
+                        if cat.personality.trait in [
+                            'cold', 'vengeful', 'arrogant', 'childish', 'oblivious', 'troublesome', 'grumpy'
+                        ]:
+                            chance = int(chance * 1.5)
+                        if cat.skills.primary.path in [
+                            SkillPath.MEDIATOR, SkillPath.SPEAKER, SkillPath.INSIGHTFUL, SkillPath.CLEVER, SkillPath.CLAIRVOYANT, SkillPath.EMPATHY
+                        ]:
+                            chance = int(chance / 1.5)
+                        if cat.skills.secondary and cat.skills.secondary.path in [
+                            SkillPath.MEDIATOR, SkillPath.SPEAKER, SkillPath.INSIGHTFUL, SkillPath.CLEVER, SkillPath.CLAIRVOYANT, SkillPath.EMPATHY
+                        ]:
+                            chance = int(chance / 1.5)
+                        if cat.skills.primary.path in [
+                            SkillPath.FIGHTER, SkillPath.HUNTER
+                        ]:
+                            chance = int(chance * 1.5)
+                        if cat.skills.secondary and cat.skills.secondary.path in [
+                            SkillPath.FIGHTER, SkillPath.HUNTER
+                        ]:
+                            chance = int(chance * 1.5)
                         if cat.is_disabled():
                             chance = int(chance / 2)
+
+                        if has_mediator_apprentice:
+                            chance * 3
 
                         if chance == 0:
                             chance = 1
 
-                        # Only become a mediator if there is already one in the clan.
-                        if (
-                            mediator_list
-                            and not has_mediator_apprentice
-                            and not int(random.random() * chance)
-                        ):
+                        if not int(random.random() * chance):
                             self.ceremony(cat, "mediator apprentice")
                             self.ceremony_accessory = True
                             self.gain_accessories(cat)
@@ -1382,18 +1530,15 @@ class Events:
                 if game.clan.clan_settings["12_moon_graduation"]:
                     _ready = cat.moons >= 12
                 else:
-                    _ready = (
-                        cat.experience_level not in ["untrained", "trainee"]
-                        and cat.moons >= game.config["graduation"]["min_graduating_age"]
-                    ) or cat.moons >= game.config["graduation"]["max_apprentice_age"][
-                        cat.status
-                    ]
+                    _ready = (cat.experience_level not in ["untrained", "trainee"] and
+                              int(cat.moons) >= int(game.min_grad_age)) \
+                             or int(cat.moons) >= int(game.max_grad_age)
 
                 if _ready:
                     if game.clan.clan_settings["12_moon_graduation"]:
                         preparedness = "prepared"
                     else:
-                        if cat.moons == game.config["graduation"]["min_graduating_age"]:
+                        if cat.moons == game.min_grad_age:
                             preparedness = "early"
                         elif cat.experience_level in ["untrained", "trainee"]:
                             preparedness = "unprepared"
@@ -2016,6 +2161,21 @@ class Events:
         """Handles murder"""
         relationships = cat.relationships.values()
         targets = []
+        if cat.secondarypersonality.trait is "gracious":
+            random_morals = int(10)
+            hate_morals = int(30)
+        elif cat.secondarypersonality.trait is "kind":
+            random_morals = int(5)
+            hate_morals = int(15)
+        elif cat.secondarypersonality.trait is "mean":
+            random_morals = int(-5)
+            hate_morals = int(-15)
+        elif cat.secondarypersonality.trait is "cruel":
+            random_morals = int(-10)
+            hate_morals = int(-30)
+        else:
+            random_morals = int(0)
+            hate_morals = int(0)
 
         if cat.age.is_baby():
             return
@@ -2025,7 +2185,7 @@ class Events:
             game.config["death_related"]["base_random_murder_chance"]
         )
         random_murder_chance -= 0.5 * (
-            (cat.personality.aggression) + (16 - cat.personality.stability)
+            (cat.personality.aggression) + (16 - cat.personality.stability) + random_morals
         )
 
         # Check to see if random murder is triggered.
@@ -2116,19 +2276,24 @@ class Events:
                 and "(medium negative effect)" in chosen_target.log[-1]
             ):
                 kill_chance -= 20
+                #print(str(chosen_target.log[-1]))
+
+            if cat.personality.trait == "bloodthirsty":
+                kill_chance -=10
 
             # little easter egg just for fun
-            if (
-                cat.personality.trait == "ambitious"
-                and Cat.fetch_cat(chosen_target.cat_to).status == "leader"
-            ):
+            if cat.personality.trait == "ambitious" and Cat.fetch_cat(chosen_target.cat_to).status in ('leader', 'deputy'):
                 kill_chance -= 10
 
-            kill_chance = max(1, int(kill_chance))
+            kill_chance += hate_morals
 
+            kill_chance = max(1, int(kill_chance))
+             
+            print(cat.name, "targeting", Cat.fetch_cat(chosen_target.cat_to).name, "final kill chance: " + str(kill_chance))
+            
             if not int(random.random() * kill_chance):
                 print(
-                    cat.name, "TARGET CHOSEN", Cat.fetch_cat(chosen_target.cat_to).name
+                    cat.name, "targeting sucess. Target:", Cat.fetch_cat(chosen_target.cat_to).name
                 )
                 print("KILL KILL KILL")
 
@@ -2352,6 +2517,43 @@ class Events:
                         )
                     ),
                 )
+    
+    def choose_new_deputy(self, possible_deputies=list):
+        """ Chooses a new deputy partially based on relationship w/ current leader, if leader exists. Otherwise completely random. """
+        if game.clan.leader and not game.clan.leader.outside and not game.clan.leader.dead:
+            random_cat = Events.random_deputy_pick(self, possible_deputies=possible_deputies)
+            return random_cat
+        elif not game.clan.leader or game.clan.leader.outside or game.clan.leader.dead:
+            random_cat = random.choice(possible_deputies)
+            print(f"New deputy: {random_cat.name} ({random_cat.ID})")
+            return random_cat
+
+    def random_deputy_pick(self, possible_deputies=list):
+        random_cat = None
+
+        while random_cat is None:
+            for item in possible_deputies:
+                random_cat = item
+                romantic_to = check_relationship_value(cat_from=game.clan.leader, cat_to=random_cat, rel_value="romantic")
+                platonic_to = check_relationship_value(cat_from=game.clan.leader, cat_to=random_cat, rel_value="platonic")
+                dislike_to = check_relationship_value(cat_from=game.clan.leader, cat_to=random_cat, rel_value="dislike")
+                respect_to = check_relationship_value(cat_from=game.clan.leader, cat_to=random_cat, rel_value="admiration")
+                comfort_to = check_relationship_value(cat_from=game.clan.leader, cat_to=random_cat, rel_value="comfortable")
+                jealousy_to = check_relationship_value(cat_from=game.clan.leader, cat_to=random_cat, rel_value="jealousy")
+                trust_to = check_relationship_value(cat_from=game.clan.leader, cat_to=random_cat, rel_value="trust")
+
+                chance = 500
+                chance = int(chance + (romantic_to * 5) + (platonic_to * 5) - (dislike_to * 10) + (respect_to * 5) + (comfort_to * 5) - (jealousy_to * 10) + (trust_to * 5))
+                final_chance = randint(1, 100000)
+                if chance <= 0:
+                    chance = 1
+                if final_chance <= chance:
+                    random_cat = None
+                else:
+                    print(f"New deputy: {random_cat.name} ({random_cat.ID})")
+                    print(f"romantic: {romantic_to}, platonic: {platonic_to}, dislike: {dislike_to}, respect: {respect_to}, comfort: {comfort_to}, jealousy: {jealousy_to}, trust: {trust_to}")
+            
+                    return random_cat
 
     def check_and_promote_deputy(self):
         # TODO: can these events be handled as ceremony events?
@@ -2376,10 +2578,13 @@ class Events:
                     Cat.all_cats_list,
                 )
             )
+            possible_deputies_sorted = sorted(possible_deputies, key=lambda x: (check_relationship_value(cat_from=game.clan.leader, cat_to=x, rel_value="romantic") + check_relationship_value(cat_from=game.clan.leader, cat_to=x, rel_value="platonic") + check_relationship_value(cat_from=game.clan.leader, cat_to=x, rel_value="trust") + check_relationship_value(cat_from=game.clan.leader, cat_to=x, rel_value="comfortable") + check_relationship_value(cat_from=game.clan.leader, cat_to=x, rel_value="admiration")), reverse=True)
+
+            possible_deputies = possible_deputies_sorted
 
             # If there are possible deputies, choose from that list.
             if possible_deputies:
-                random_cat = random.choice(possible_deputies)
+                random_cat = Events.choose_new_deputy(self, possible_deputies=possible_deputies)
                 involved_cats = [random_cat.ID]
 
                 # Gather deputy and leader status, for determination of the text.

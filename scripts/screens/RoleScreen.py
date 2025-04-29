@@ -243,13 +243,40 @@ class RoleScreen(Screens):
             object_id=get_text_box_theme("#text_box_30"),
         )
 
-        text = [
-            "<b>" + i18n.t(f"general.{self.the_cat.status}", count=1) + "</b>",
-            i18n.t(f"cat.personality.{self.the_cat.personality.trait}"),
-            i18n.t("general.moons_age", count=self.the_cat.moons)
-            + "  |  "
-            + self.the_cat.genderalign,
-        ]
+        text = f"<b>{self.the_cat.status}</b>\n{self.the_cat.personality.trait}\n"
+
+        years = str(self.the_cat.moons / 12)
+        years = years[:4]
+        if years[-1] == "0":
+            years = years[:-1]
+        if years[-1] == ".":
+            years = years[:-1]
+
+        if not game.clan.clan_settings['onlyyears'] and game.clan.clan_settings['showyears']:
+            text += f"{self.the_cat.moons} "
+  
+            if self.the_cat.moons == 1:
+                text += "moon  |  "
+            else:
+                text += "moons  |  "
+        elif not game.clan.clan_settings['onlyyears'] and not game.clan.clan_settings['showyears']:
+            text += f"{self.the_cat.moons} "
+  
+            if self.the_cat.moons == 1:
+                text += "moon"
+            else:
+                text += "moons"
+
+        if game.clan.clan_settings['showyears'] or game.clan.clan_settings['onlyyears']:
+            text += f"{years} "
+            if years == 1:
+                text += "year"
+            else:
+                text += "years"
+
+
+        text += self.the_cat.genderalign
+        text += "\n"
 
         if self.the_cat.mentor:
             mentor = Cat.fetch_cat(self.the_cat.mentor)

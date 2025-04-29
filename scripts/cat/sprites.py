@@ -157,6 +157,8 @@ class Sprites:
             "fadestarclan",
             "fadedarkforest",
             "symbols",
+            'albinistic',
+            'melanistic'
         ]:
             if "lineart" in x and game.config["fun"]["april_fools"]:
                 self.spritesheet(f"sprites/aprilfools{x}.png", x)
@@ -170,6 +172,9 @@ class Sprites:
 
         self.make_group("lineartdead", (0, 0), "lineartdead")
         self.make_group("lineartdf", (0, 0), "lineartdf")
+        
+        self.make_group('albinistic', (0, 0), 'albinistic')
+        self.make_group('melanistic', (0, 0), 'melanistic')
 
         # Fading Fog
         for i in range(0, 3):
