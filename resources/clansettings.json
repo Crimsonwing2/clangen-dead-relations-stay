@@ -37,12 +37,12 @@
         ],
         "showyears": [
             "Show age in years as well as moons",
-            "Will turn '12 moons' into '12 moons (1 year)'",
+            "Will turn '12 moons' into '12 moons | 1 year'.",
             true
         ],
         "onlyyears": [
             "Show age in years instead of moons",
-            "Will turn '12 moons' into '1 year'",
+            "Will turn '12 moons' into '1 year'.",
             false,
             [
                 "showyears",

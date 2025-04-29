@@ -1146,11 +1146,10 @@ class ChooseMateScreen(Screens):
         )
 
         # Set romantic hearts of current cat towards mate or selected cat.
+        if self.selected_cat.ID in self.the_cat.relationships:
+            relation = self.the_cat.relationships[self.selected_cat.ID]
         else:
-            if self.selected_cat.ID in self.the_cat.relationships:
-                relation = self.the_cat.relationships[self.selected_cat.ID]
-            else:
-                relation = self.the_cat.create_one_relationship(self.selected_cat)
+            relation = self.the_cat.create_one_relationship(self.selected_cat)
             romantic_love = relation.romantic_love
 
         if 10 <= romantic_love <= 30:

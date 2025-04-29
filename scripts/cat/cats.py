@@ -169,7 +169,7 @@ class Cat:
         self.personality = Personality(
             trait="troublesome", lawful=0, aggress=0, stable=0, social=0
         )
-        self.secondarypersonality = self.secondarypersonality if self.secondarypersonality else SecondaryPersonality(lawful=self.personality.lawfulness,stable=self.personality.stability,aggress=self.personality.aggression,social=self.personality.sociability) # Hidden trait that mainly deals with morals. Must be here so personality facets can be called on
+        self.secondarypersonality = SecondaryPersonality(lawful=0,stable=0,aggress=0,social=0) # Hidden trait that mainly deals with morals. Must be here so personality facets can be called on
         self.parent1 = parent1
         self.parent2 = parent2
         self.adoptive_parents = adoptive_parents if adoptive_parents else []

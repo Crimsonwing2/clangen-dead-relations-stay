@@ -768,24 +768,30 @@ class Pelt:
         return new_pelt
 
     def generate_albinism(self, parents):
-        parentchoice = random.choice([i.pelt.albinistic for i in parents])
-        if parentchoice:
-            chance = random.randint(1,10)
+        if [i.pelt.albinstic for i in parents]:
+            parentchoice = random.choice([i.pelt.albinistic for i in parents])
+            if parentchoice:
+                chance = random.randint(1,10)
+            else:
+                chance = random.randint(1,100)
         else:
             chance = random.randint(1,100)
         if chance == 1:
-            return True
+                return True
         else:
             return False
 
     def generate_melanism(self, parents):
-        parentchoice = random.choice([i.pelt.melanistic for i in parents])
-        if parentchoice:
-            chance = random.randint(1,10)
+        if [i.pelt.melanistic for i in parents]:
+            parentchoice = random.choice([i.pelt.melanistic for i in parents])
+            if parentchoice:
+                chance = random.randint(1,10)
+            else:
+                chance = random.randint(1,100)
         else:
             chance = random.randint(1,100)
         if chance == 1:
-            return True
+                return True
         else:
             return False
         
